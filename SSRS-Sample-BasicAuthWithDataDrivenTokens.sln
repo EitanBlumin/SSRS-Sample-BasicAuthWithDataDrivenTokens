@@ -7,6 +7,8 @@ Project("{F14B399A-7131-4C87-9E4B-1186C45EF12D}") = "SSRS-Sample-DataDrivenToken
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWebApp", "SampleWebApp\SampleWebApp.csproj", "{54BE0A20-AC53-478F-B814-0AACFAE2D643}"
 EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "SampleWebAppDatabase", "SampleWebAppDatabase\SampleWebAppDatabase.sqlproj", "{225AF53D-1ACC-4360-8C39-29AF96140DA5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,15 @@ Global
 		{54BE0A20-AC53-478F-B814-0AACFAE2D643}.DebugLocal|Any CPU.Build.0 = Debug|Any CPU
 		{54BE0A20-AC53-478F-B814-0AACFAE2D643}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{54BE0A20-AC53-478F-B814-0AACFAE2D643}.Release|Any CPU.Build.0 = Release|Any CPU
+		{225AF53D-1ACC-4360-8C39-29AF96140DA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{225AF53D-1ACC-4360-8C39-29AF96140DA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{225AF53D-1ACC-4360-8C39-29AF96140DA5}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{225AF53D-1ACC-4360-8C39-29AF96140DA5}.DebugLocal|Any CPU.ActiveCfg = Debug|Any CPU
+		{225AF53D-1ACC-4360-8C39-29AF96140DA5}.DebugLocal|Any CPU.Build.0 = Debug|Any CPU
+		{225AF53D-1ACC-4360-8C39-29AF96140DA5}.DebugLocal|Any CPU.Deploy.0 = Debug|Any CPU
+		{225AF53D-1ACC-4360-8C39-29AF96140DA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{225AF53D-1ACC-4360-8C39-29AF96140DA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{225AF53D-1ACC-4360-8C39-29AF96140DA5}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

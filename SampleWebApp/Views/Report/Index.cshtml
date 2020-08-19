@@ -8,3 +8,13 @@
 
 <p>This page will contain the SQL Server Reporting Services report sample.</p>
 
+<p>Your data, seen by the controller:</p>
+<ul>
+    <li>UserId: @ViewBag.userId</li>
+    <li>HashToken: @ViewBag.HashToken</li>
+    <li>TokenExpireDate: @ViewBag.TokenExpireDate</li>
+</ul>
+
+<h3>
+    @Html.ActionLink("Access Report via HttpClient", "HttpClientMode", "Report")
+</h3>
