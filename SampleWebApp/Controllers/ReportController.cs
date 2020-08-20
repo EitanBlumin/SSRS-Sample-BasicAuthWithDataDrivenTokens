@@ -130,9 +130,9 @@ namespace SampleWebApp.Controllers
 
                 HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Add("Authorization", "Basic " + accessToken);
+                client.DefaultRequestHeaders.Add("Access-Control-Allow-Origin", "*");
 
                 ViewBag.reportUrl = url;
-
                 System.Threading.Tasks.Task<string> response = client.GetStringAsync(url);
 
                 try

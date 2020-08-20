@@ -1,0 +1,60 @@
+<html>
+<body>
+
+<div class="alert-danger" id="errorContainer"></div>
+
+<iframe id="reportContainer" style="width:100%;height:100%;overflow:scroll"></iframe>
+
+<script type="text/javascript">
+	// report server settings (possibly static)
+	ssrs_username = "ReportReaderAccount"; // this must be a Windows account with minimal permissions on the Report Server
+	ssrs_password = "P@ssw0rd";
+	ssrs_accessToken = btoa(ssrs_username + ":" + ssrs_password);
+	ssrs_server_address = "http://localhost";
+	ssrs_reportPath = "%2fSSRS-Sample-DataDrivenTokens%2fSampleReportWithDataDrivenToken";
+	
+	// client data (possibly dynamic)
+	client_userId = "fda1aaaf-3b8c-4a06-a85b-201717f4b71a";
+	client_hashToken = "E8FC26EF0DAAF08F1EF3A4F3E540D8EFD5A8CCFDF0845EBA51A08D2A2FE4E24DB23DA2F2EF2DE3148D0DD872D4E08CE7CE9AEB076113D7E61812C9FDF358D22F";
+	additional_params = "&SampleParameter=SomeValueFromUrl";
+	
+	// generate final report URL
+	reportUrl = ssrs_server_address + "/ReportServer/Pages/ReportViewer.aspx?" 
+					+ ssrs_reportPath 
+					+ "&rs:Command=Render&rc:Toolbar=false" 
+					+ "&UserId=" + client_userId 
+					+ "&HashToken=" + client_hashToken
+					+ additional_params ;
+	
+    var xhr = new XMLHttpRequest();
+
+    xhr.open('GET', reportUrl, true);
+	xhr.withCredentials = "true";
+    xhr.onreadystatechange = handler;
+    xhr.responseType = 'blob';
+    xhr.setRequestHeader('Authorization', 'Basic ' + ssrs_accessToken); // inject the basic auth in the request header
+    xhr.send();
+
+    function handler() {
+        if (this.readyState === this.DONE) {
+            if (this.status === 200) {
+                // this.response is a Blob, because we set responseType above
+                var data_url = URL.createObjectURL(this.response);
+                document.querySelector('#reportContainer').src = data_url;
+                document.querySelector('#reportContainer').style.display = "block"; // make sure the iframe is visible
+            } else {
+				// log the error in the browser developer console
+                console.error('Response error ' + this.status);
+                console.log(this.statusText);
+				
+				// display the error in the page
+                document.querySelector('#errorContainer').innerHTML = "<h2>Server Response Error!</h2><p>" + this.statusText + "</p>";
+                document.querySelector('#reportContainer').style.display = "none"; // hide the iframe
+            }
+        }
+    }
+
+</script>
+
+</body>
+</html>

@@ -56,6 +56,9 @@
   </ItemGroup>
   <ItemGroup>
     <Report Include="SampleReportWithDataDrivenToken.rdl" />
+    <Report Include="SSRS_Deploy.ps1">
+      <MimeType>application/octet-stream</MimeType>
+    </Report>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Reporting Services\Microsoft.ReportingServices.MSBuilder.targets" />
 </Project>
