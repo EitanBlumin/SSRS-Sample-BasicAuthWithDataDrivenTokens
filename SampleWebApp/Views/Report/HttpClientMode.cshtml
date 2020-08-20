@@ -1,11 +1,29 @@
 ﻿
 @{
-    ViewBag.Title = "HttpClientMode";
+    ViewBag.Title = "HttpClient Mode";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>@ViewBag.Title.</h2>
+<h2>@ViewBag.Title</h2>
+
+<p>
+    <b><a href="@ViewBag.reportUrl" target="_blank">Report URL</a>:</b>
+    <br />
+    <pre>@ViewBag.reportUrl</pre>
+</p>
 
 <div>
 @ViewBag.ReportHtml
+</div>
+
+<div class="alert-danger">
+    <h2>@ViewBag.ErrorTitle</h2>
+    <p>@ViewBag.ErrorMessage</p>
+    <ul>
+        @foreach (var item in ViewBag.ErrorData)
+        {
+            <li>@item</li>
+        }
+    </ul>
+    <p class="alert-warning">Stack Trace:<br/>@ViewBag.ErrorStackTrace</p>
 </div>

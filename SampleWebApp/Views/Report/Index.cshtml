@@ -4,9 +4,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>@ViewBag.Title.</h2>
-
-<p>This page will contain the SQL Server Reporting Services report sample.</p>
+<h2>@ViewBag.Title</h2>
 
 <p>Your data, seen by the controller:</p>
 <ul>
@@ -17,4 +15,7 @@
 
 <h3>
     @Html.ActionLink("Access Report via HttpClient", "HttpClientMode", "Report")
+</h3>
+<h3>
+    @Html.ActionLink("Access Report via JavaScript", "JavaScriptMode", "Report")
 </h3>

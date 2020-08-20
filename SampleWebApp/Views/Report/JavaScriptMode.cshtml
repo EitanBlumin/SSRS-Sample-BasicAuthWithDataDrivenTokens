@@ -1,0 +1,42 @@
+﻿
+@{
+    ViewBag.Title = "JavaScript Mode";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<p>
+    <b><a href="@ViewBag.reportUrl" target="_blank">Report URL</a>:</b>
+    <br />
+    <pre>@ViewBag.reportUrl</pre>
+</p>
+
+<iframe id="reportContainer"></iframe>
+
+<div class="alert-danger" id="errorContainer"></div>
+
+<script type="text/javascript">
+    var xhr = new XMLHttpRequest();
+
+    xhr.open('GET', '@ViewBag.reportUrl');
+    xhr.onreadystatechange = handler;
+    xhr.responseType = 'blob';
+    xhr.setRequestHeader('Authorization', 'Basic @ViewBag.accessToken');
+    xhr.send();
+
+    function handler() {
+        if (this.readyState === this.DONE) {
+            if (this.status === 200) {
+                // this.response is a Blob, because we set responseType above
+                var data_url = URL.createObjectURL(this.response);
+                document.querySelector('#reportContainer').src = data_url;
+            } else {
+                console.error('Response error ' + this.status);
+                console.log(this.response);
+                document.querySelector('#errorContainer').innerHTML = "<h2>Server Response Error!</h2><p>" + this.status + "</p>";
+            }
+        }
+    }
+
+</script>

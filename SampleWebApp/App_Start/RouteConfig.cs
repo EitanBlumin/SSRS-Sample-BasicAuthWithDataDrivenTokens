@@ -18,6 +18,18 @@ namespace SampleWebApp
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
             );
+
+            routes.MapRoute(
+                name: "ViewReportHttpClient",
+                url: "ViewReportHttpClient/{ReportName}/{SampleParameter}",
+                defaults: new { controller = "Report", action = "HttpClientMode", ReportName = UrlParameter.Optional, SampleParameter = UrlParameter.Optional }
+            );
+            
+            routes.MapRoute(
+                name: "ViewReportJavaScript",
+                url: "ViewReportJavaScript/{ReportName}/{SampleParameter}",
+                defaults: new { controller = "Report", action = "JavaScriptMode", ReportName = UrlParameter.Optional, SampleParameter = UrlParameter.Optional }
+            );
         }
     }
 }
