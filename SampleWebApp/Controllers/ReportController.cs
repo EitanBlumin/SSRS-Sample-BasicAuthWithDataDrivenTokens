@@ -117,54 +117,77 @@ namespace SampleWebApp.Controllers
         [Authorize]
         public ActionResult HttpClientMode(string ReportName, string SampleParameter)
         {
-            var authToken = CreateAuthToken();
-
-            if (authToken == null)
+            try
             {
-                throw new Exception("No Authorization Token was generated");
-            }
-            else
-            {
-                var url = GetReportUrl(authToken["UserId"].ToString(), authToken["HashToken"].ToString(), ReportName, SampleParameter);
-                var accessToken = GetBasicAuthenticationAccessToken();
+                var authToken = CreateAuthToken();
 
-                HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Add("Authorization", "Basic " + accessToken);
-                client.DefaultRequestHeaders.Add("Access-Control-Allow-Origin", "*");
-
-                ViewBag.reportUrl = url;
-                System.Threading.Tasks.Task<string> response = client.GetStringAsync(url);
-
-                try
+                if (authToken == null)
                 {
-                    response.Wait();
-
-                    ViewBag.ReportHtml = response.Result;
+                    throw new Exception("No Authorization Token was generated");
                 }
-                catch (Exception e)
+                else
                 {
-                    ViewBag.ErrorTitle = "Server Error!";
+                    var url = GetReportUrl(authToken["UserId"].ToString(), authToken["HashToken"].ToString(), ReportName, SampleParameter);
+                    var accessToken = GetBasicAuthenticationAccessToken();
 
-                    ViewBag.ErrorMessage = e.Message;
-                    var ErrorData = new List<string>();
+                    HttpClient client = new HttpClient();
+                    client.DefaultRequestHeaders.Add("Authorization", "Basic " + accessToken);
+                    client.DefaultRequestHeaders.Add("Access-Control-Allow-Origin", "*");
 
-                    Exception innerEx = e.InnerException;
-                    int depth = 1;
+                    ViewBag.reportUrl = url;
+                    System.Threading.Tasks.Task<string> response = client.GetStringAsync(url);
 
-                    while (innerEx != null && depth < 5)
+                    try
                     {
-                        ErrorData.Add(innerEx.Message);
-                        innerEx = innerEx.InnerException;
-                        depth++;
+                        response.Wait();
+
+                        ViewBag.ReportHtml = response.Result;
                     }
+                    catch (Exception e)
+                    {
+                        ViewBag.ErrorTitle = "Report Server Error!";
 
-                    ViewBag.ErrorData = ErrorData;
+                        ViewBag.errorMessage = e.Message;
+                        var ErrorData = new List<string>();
 
-                    ViewBag.ErrorStackTrace = e.StackTrace;
+                        Exception innerEx = e.InnerException;
+                        int depth = 1;
+
+                        while (innerEx != null && depth < 5)
+                        {
+                            ErrorData.Add(innerEx.Message);
+                            innerEx = innerEx.InnerException;
+                            depth++;
+                        }
+
+                        ViewBag.ErrorData = ErrorData;
+
+                        ViewBag.ErrorStackTrace = e.StackTrace;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                ViewBag.ErrorTitle = "Error While Setting Up Authorization!";
+
+                ViewBag.errorMessage = e.Message;
+                var ErrorData = new List<string>();
+
+                Exception innerEx = e.InnerException;
+                int depth = 1;
+
+                while (innerEx != null && depth < 5)
+                {
+                    ErrorData.Add(innerEx.Message);
+                    innerEx = innerEx.InnerException;
+                    depth++;
                 }
 
-                return View();
+                ViewBag.ErrorData = ErrorData;
+
+                ViewBag.ErrorStackTrace = e.StackTrace;
             }
+            return View();
         }
 
         [Authorize]

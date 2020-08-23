@@ -9,7 +9,7 @@ Example locations:
 
 Find the `<Authentication>` element and change it to something like this:
 
-```
+```xml
 <Authentication>
 	<AuthenticationTypes>
 		<RSWindowsBasic>
@@ -24,6 +24,8 @@ Find the `<Authentication>` element and change it to something like this:
 	<EnableAuthPersistence>true</EnableAuthPersistence>
 </Authentication>
 ```
+
+Save the file and then restart the Report Server service.
 
 This will enable **both** Basic Authentication, as well as the default NTLM Authentication.
 
