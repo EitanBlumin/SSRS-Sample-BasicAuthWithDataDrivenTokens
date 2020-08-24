@@ -1,21 +1,29 @@
 ﻿
 @{
     ViewBag.Title = "HttpClient Mode";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
 
+    if (String.IsNullOrEmpty(ViewBag.ReportHtml))
+    {
+        Layout = "";
+    } else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+}
 <h2>@ViewBag.Title</h2>
 
 <p>
-    <b><a href="@ViewBag.reportUrl" target="_blank">Report URL</a>:</b>
+    <b><a href="@Html.Raw(ViewBag.reportUrl)" target="_blank">Report URL</a>:</b>
     <br />
     <pre>@ViewBag.reportUrl</pre>
 </p>
 
-<div>
-@ViewBag.ReportHtml
+<div class="container-fluid" style="border:solid 1.5px silver;border-style: inset">
+    @Html.Raw(ViewBag.ReportHtml)
 </div>
 
+@if (!String.IsNullOrEmpty(ViewBag.errorMessage))
+{
 <div class="alert-danger">
     <h2>@ViewBag.ErrorTitle</h2>
     <p>@ViewBag.errorMessage</p>
@@ -25,5 +33,6 @@
             <li>@item</li>
         }
     </ul>
-    <p class="alert-warning">Stack Trace:<br/>@ViewBag.ErrorStackTrace</p>
+    <p class="alert-warning">Stack Trace:<br />@ViewBag.ErrorStackTrace</p>
 </div>
+}

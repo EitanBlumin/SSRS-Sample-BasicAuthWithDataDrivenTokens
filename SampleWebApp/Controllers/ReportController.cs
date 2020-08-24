@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.Remoting.Contexts;
 using System.Web;
@@ -14,13 +15,17 @@ namespace SampleWebApp.Controllers
 {
     public class ReportController : Controller
     {
-        private string GetReportUrl(string UserId, string HashToken, string ReportName = "SampleReportWithDataDrivenToken", string SampleParameter = "")
+        private string GetReportUrl(string UserId, string HashToken, string ReportName = "SampleReportWithDataDrivenToken", string SampleParameter = "", string Format = "")
         {
             Dictionary<string, string> arguments = new Dictionary<string, string>();
 
             if (!String.IsNullOrEmpty(SampleParameter))
             {
                 arguments.Add("SampleParameter", SampleParameter);
+            }
+            if (!String.IsNullOrEmpty(Format))
+            {
+                arguments.Add("rs:Format", Format);
             }
 
             return GetReportUrl(UserId, HashToken, ReportName, arguments);
@@ -43,7 +48,8 @@ namespace SampleWebApp.Controllers
             }
 
             var url = String.Format(
-                ConfigurationManager.AppSettings["SSRSReportBaseURL"] + "{0}&rs:Command=Render&UserId={1}&HashToken={2}",
+                ConfigurationManager.AppSettings["SSRSReportBaseURL"] + "/ReportServer/Pages/ReportViewer.aspx?"
+                + ConfigurationManager.AppSettings["SSRSReportsBasePath"] + "{0}&rs:Command=Render&rc:Toolbar=false&UserId={1}&HashToken={2}",
                 ReportName,
                 UserId,
                 HashToken
@@ -93,6 +99,7 @@ namespace SampleWebApp.Controllers
             return null;
         }
 
+        //[Authorize(Roles = "DOMAIN\Role1,DOMAIN\Role2")]
         [Authorize]
         public ActionResult Index()
         {
@@ -113,10 +120,13 @@ namespace SampleWebApp.Controllers
 
             return View();
         }
-
+        
+        //[Authorize(Roles = "DOMAIN\Role1,DOMAIN\Role2")]
         [Authorize]
-        public ActionResult HttpClientMode(string ReportName, string SampleParameter)
+        public ActionResult HttpClientMode(string id, string format)
         {
+            ViewBag.ErrorData = new List<string>();
+
             try
             {
                 var authToken = CreateAuthToken();
@@ -127,42 +137,72 @@ namespace SampleWebApp.Controllers
                 }
                 else
                 {
-                    var url = GetReportUrl(authToken["UserId"].ToString(), authToken["HashToken"].ToString(), ReportName, SampleParameter);
-                    var accessToken = GetBasicAuthenticationAccessToken();
+                    string url = GetReportUrl(authToken["UserId"].ToString(), authToken["HashToken"].ToString(), default, id, format);
+                    string accessToken = GetBasicAuthenticationAccessToken();
+                    string authType = "Basic"; // you can also change this to "NTLM"
 
-                    HttpClient client = new HttpClient();
-                    client.DefaultRequestHeaders.Add("Authorization", "Basic " + accessToken);
-                    client.DefaultRequestHeaders.Add("Access-Control-Allow-Origin", "*");
+                    CredentialCache credentialCache = new CredentialCache();
+                    credentialCache.Add(new Uri(ConfigurationManager.AppSettings["SSRSReportBaseURL"])
+                                            , authType, new NetworkCredential(
+                                                            ConfigurationManager.AppSettings["SSRSAccount"],
+                                                            ConfigurationManager.AppSettings["SSRSPassword"]
+                                                            )
+                                            );
 
-                    ViewBag.reportUrl = url;
-                    System.Threading.Tasks.Task<string> response = client.GetStringAsync(url);
-
-                    try
+                    using (HttpClientHandler handler = new HttpClientHandler() { Credentials = credentialCache })
                     {
-                        response.Wait();
+                        HttpClient client = new HttpClient(handler);
+                        client.DefaultRequestHeaders.Add("Access-Control-Allow-Origin", "*");
 
-                        ViewBag.ReportHtml = response.Result;
-                    }
-                    catch (Exception e)
-                    {
-                        ViewBag.ErrorTitle = "Report Server Error!";
+                        ViewBag.reportUrl = url;
+                        ViewBag.accessToken = accessToken;
+                        System.Threading.Tasks.Task<HttpResponseMessage> response = client.GetAsync(url);
 
-                        ViewBag.errorMessage = e.Message;
-                        var ErrorData = new List<string>();
-
-                        Exception innerEx = e.InnerException;
-                        int depth = 1;
-
-                        while (innerEx != null && depth < 5)
+                        try
                         {
-                            ErrorData.Add(innerEx.Message);
-                            innerEx = innerEx.InnerException;
-                            depth++;
+                            response.Wait();
+
+                            if (response.Result == null || response.Result.StatusCode != System.Net.HttpStatusCode.OK)
+                            {
+                                if (response.Result == null)
+                                    throw new Exception("Null response");
+                                else
+                                    throw new Exception(String.Format("Report Server returned an error ({0})", response.Result.StatusCode));
+                            }
+
+                            HttpContent content = response.Result.Content;
+                            System.Threading.Tasks.Task<string> result = content.ReadAsStringAsync();
+
+                            result.Wait();
+
+                            ViewBag.ReportHtml = result.Result;
                         }
+                        catch (Exception e)
+                        {
+                            ViewBag.ErrorTitle = "Report Server Error!";
 
-                        ViewBag.ErrorData = ErrorData;
+                            if (response != null && response.Result != null)
+                            {
+                                ViewBag.ErrorTitle += String.Format(" (status code {0} - {1})", (int)response.Result.StatusCode, response.Result.StatusCode);
+                            }
 
-                        ViewBag.ErrorStackTrace = e.StackTrace;
+                            ViewBag.errorMessage = e.Message;
+                            var ErrorData = new List<string>();
+
+                            Exception innerEx = e.InnerException;
+                            int depth = 1;
+
+                            while (innerEx != null && depth < 5)
+                            {
+                                ErrorData.Add(innerEx.Message);
+                                innerEx = innerEx.InnerException;
+                                depth++;
+                            }
+
+                            ViewBag.ErrorData = ErrorData;
+
+                            ViewBag.ErrorStackTrace = e.StackTrace;
+                        }
                     }
                 }
             }
@@ -190,22 +230,48 @@ namespace SampleWebApp.Controllers
             return View();
         }
 
+        //[Authorize(Roles = "DOMAIN\Role1,DOMAIN\Role2")]
         [Authorize]
-        public ActionResult JavaScriptMode(string ReportName, string SampleParameter)
+        public ActionResult JavaScriptMode(string id, string format)
         {
-            var authToken = CreateAuthToken();
+            ViewBag.ErrorData = new List<string>();
 
-            if (authToken == null)
+            try
             {
-                throw new Exception("No Authorization Token was generated");
-            }
-            else
-            {
-                ViewBag.reportUrl = GetReportUrl(authToken["UserId"].ToString(), authToken["HashToken"].ToString(), ReportName, SampleParameter);
-                ViewBag.accessToken = GetBasicAuthenticationAccessToken();
+                var authToken = CreateAuthToken();
 
-                return View();
+                if (authToken == null)
+                {
+                    throw new Exception("No Authorization Token was generated");
+                }
+                else
+                {
+                    ViewBag.reportUrl = GetReportUrl(authToken["UserId"].ToString(), authToken["HashToken"].ToString(), default, id, format);
+                    ViewBag.accessToken = GetBasicAuthenticationAccessToken();
+                }
             }
+            catch (Exception e)
+            {
+                ViewBag.ErrorTitle = "Error While Setting Up Authorization!";
+
+                ViewBag.errorMessage = e.Message;
+                var ErrorData = new List<string>();
+
+                Exception innerEx = e.InnerException;
+                int depth = 1;
+
+                while (innerEx != null && depth < 5)
+                {
+                    ErrorData.Add(innerEx.Message);
+                    innerEx = innerEx.InnerException;
+                    depth++;
+                }
+
+                ViewBag.ErrorData = ErrorData;
+
+                ViewBag.ErrorStackTrace = e.StackTrace;
+            }
+            return View();
         }
     }
 }

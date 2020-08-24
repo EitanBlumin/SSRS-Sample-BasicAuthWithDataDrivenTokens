@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+	<style>
+		.loader {
+			border: 16px solid #f3f3f3; /* Light grey */
+			border-top: 16px solid #3498db; /* Blue */
+			border-radius: 50%;
+			width: 120px;
+			height: 120px;
+			animation: spin 2s linear infinite;
+		}
+
+		@keyframes spin {
+			0% {
+				transform: rotate(0deg);
+			}
+
+			100% {
+				transform: rotate(360deg);
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="navbar navbar-dark bg-dark">
+		<a class="navbar-brand" href="#">The simplest Single-Page-App</a>
+		<ul class="navbar-nav mr-auto">
+			<li class="nav-item active">
+				<a class="nav-link" href="/">Back to Home</a>
+			</li>
+		</ul>
+	</div>
+
+	<div class="container-fluid">
+
+		<table cellspacing="0" cellpadding="3" border="0">
+			<tr>
+				<th scope="row" align="right">UserId:</th>
+				<td>
+					<input type="text" name="UserId" id="UserId" required placeholder="Enter the UserID GUID here" size="50" value="fda1aaaf-3b8c-4a06-a85b-201717f4b71a" />
+				</td>
+				<td rowspan="3" valign="top">
+					<button type="button" name="btnSubmit" id="btnSubmit" onclick="openReport()" class="btn-primary">View Report</button>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row" align="right">HashToken:</th>
+				<td>
+					<input type="text" name="HashToken" id="HashToken" required placeholder="Enter the generated Hash Token here" size="50" value="86D26F75A4777F7E590F90BF4461B067980109EB51AE8085A76E245AEF0C6038354B48AE397A9B1B9C52CE5E2017D8E5E6C329A7DA8D8B92EF3B04531AE303BA" />
+				</td>
+			</tr>
+			<tr>
+				<th scope="row" align="right">Additional Parameter:</th>
+				<td>
+					<input type="text" name="SampleParameter" id="SampleParameter" placeholder="Optional" size="50" value="Some value from JS form" />
+				</td>
+			</tr>
+		</table>
+
+		<div>
+			<pre id="reportUrlContainer"></pre>
+		</div>
+
+		<div id="spinner" style="display:none">
+			<div>Loading Report...</div>
+			<div class="loader"></div>
+		</div>
+
+		<div class="alert-danger" id="errorContainer"></div>
+
+		<iframe id="reportContainer" style="width:100%;height:100%;overflow:scroll;display:none"></iframe>
+
+		<script type="text/javascript">
+			function openReport() {
+				document.getElementById("btnSubmit").disabled = true;
+				document.getElementById('reportContainer').style.display = "none"; // hide the iframe
+				document.getElementById('spinner').style.display = "block"; // show spinner
+
+				// TODO: report server settings (possibly static)
+				ssrs_username = "ReportReaderAccount"; // this must be a Windows account with minimal permissions on the Report Server
+				ssrs_password = "P@ssw0rd";
+				ssrs_accessToken = btoa(ssrs_username + ":" + ssrs_password);
+				ssrs_server_address = "http://13.94.118.3:8081";
+				ssrs_reportPath = "%2fSSRS-Sample-DataDrivenTokens%2fSampleReportWithDataDrivenToken";
+
+				// TODO: client data (possibly dynamic)
+				client_userId = document.getElementById("UserId").value;
+				client_hashToken = document.getElementById("HashToken").value;
+				additional_parameter = document.getElementById("SampleParameter").value;
+
+				if (additional_parameter) {
+					additional_params = "&SampleParameter=" + additional_parameter;
+				} else {
+					additional_params = "";
+				}
+
+				// generate final report URL
+				// reference for additional URL system parameters: https://docs.microsoft.com/en-us/sql/reporting-services/url-access-parameter-reference
+				reportUrl = ssrs_server_address + "/ReportServer/Pages/ReportViewer.aspx?"
+					+ ssrs_reportPath
+					+ "&rs:Command=Render"
+                    + "&rc:Toolbar=false" // you'll want to avoid displaying the toolbar, so that you won't get reference errors related to CSS and JavaScript
+					+ "&UserId=" + client_userId
+					+ "&HashToken=" + client_hashToken
+					+ additional_params;
+
+				// TODO: remove in production
+				document.getElementById("reportUrlContainer").innerHTML = reportUrl;
+
+				var xhr = new XMLHttpRequest();
+
+				xhr.open('GET', reportUrl, true);
+				xhr.onreadystatechange = handler;
+				xhr.responseType = 'blob';
+				xhr.withCredentials = "true";
+				xhr.setRequestHeader('Access-Control-Allow-Origin', '*'); // allow CORS
+				xhr.setRequestHeader('Authorization', 'Basic ' + ssrs_accessToken); // inject the basic auth in the request header
+				xhr.send();
+
+				function handler() {
+					document.getElementById("btnSubmit").disabled = false;
+					if (this.readyState === this.DONE) {
+						if (this.status === 200) {
+							// this.response is a Blob, because we set responseType above
+							var data_url = URL.createObjectURL(this.response);
+							document.getElementById('reportContainer').src = data_url;
+							document.getElementById('reportContainer').style.display = "block"; // make sure the iframe is visible
+							document.getElementById('spinner').style.display = "none";
+						} else {
+							// log the error in the browser developer console
+							console.error('Response error ' + this.status);
+							console.error(this.statusText);
+
+							// display the error in the page
+							document.getElementById('errorContainer').innerHTML = "<h2>Server Response Error!</h2><p>" + this.statusText + "</p>";
+							document.getElementById('reportContainer').style.display = "none"; // hide the iframe
+							document.getElementById('spinner').style.display = "none";
+						}
+					}
+				}
+			}
+		</script>
+		</div>
+</body>
+</html>

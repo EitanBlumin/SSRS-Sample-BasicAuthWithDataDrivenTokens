@@ -89,7 +89,9 @@
                               <TextRuns>
                                 <TextRun>
                                   <Value>Message</Value>
-                                  <Style />
+                                  <Style>
+                                    <FontWeight>Bold</FontWeight>
+                                  </Style>
                                 </TextRun>
                               </TextRuns>
                               <Style />
@@ -101,6 +103,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <BackgroundColor>LightSteelBlue</BackgroundColor>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
                             <PaddingTop>2pt</PaddingTop>
@@ -119,7 +122,9 @@
                               <TextRuns>
                                 <TextRun>
                                   <Value>Sample Parameter Value</Value>
-                                  <Style />
+                                  <Style>
+                                    <FontWeight>Bold</FontWeight>
+                                  </Style>
                                 </TextRun>
                               </TextRuns>
                               <Style />
@@ -131,6 +136,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <BackgroundColor>LightSteelBlue</BackgroundColor>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
                             <PaddingTop>2pt</PaddingTop>
@@ -245,7 +251,9 @@
                     <Style>
                       <FontFamily>Arial</FontFamily>
                       <FontSize>24pt</FontSize>
+                      <FontWeight>ExtraBold</FontWeight>
                       <TextDecoration>Underline</TextDecoration>
+                      <Color>CornflowerBlue</Color>
                     </Style>
                   </TextRun>
                 </TextRuns>
@@ -254,7 +262,7 @@
             </Paragraphs>
             <rd:DefaultName>Textbox7</rd:DefaultName>
             <Height>1.08683cm</Height>
-            <Width>6.16183cm</Width>
+            <Width>6.7545cm</Width>
             <ZIndex>1</ZIndex>
             <Style>
               <Border>

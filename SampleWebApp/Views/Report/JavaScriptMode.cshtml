@@ -7,24 +7,47 @@
 <h2>@ViewBag.Title</h2>
 
 <p>
-    <b><a href="@ViewBag.reportUrl" target="_blank">Report URL</a>:</b>
+    <b><a href="@Html.Raw(ViewBag.reportUrl)" target="_blank">Report URL</a>:</b>
     <br />
     <pre>@ViewBag.reportUrl</pre>
 </p>
 
 <div class="alert-danger" id="errorContainer"></div>
 
+@if (!String.IsNullOrEmpty(ViewBag.errorMessage))
+{
+<div class="alert-danger">
+    <h2>@ViewBag.ErrorTitle</h2>
+    <p>@ViewBag.errorMessage</p>
+    <ul>
+        @foreach (var item in ViewBag.ErrorData)
+        {
+            <li>@item</li>
+        }
+    </ul>
+    <p class="alert-warning">Stack Trace:<br />@ViewBag.ErrorStackTrace</p>
+</div>
+}
+
+<div id="spinner" style="display:none">
+    <div>Loading Report...</div>
+    <div><img src="https://i.stack.imgur.com/fLQzF.gif" crossorigin="anonymous" /></div>
+</div>
+
 <iframe id="reportContainer" style="width:100%;height:90%;overflow:scroll"></iframe>
 
 <script type="text/javascript">
     var xhr = new XMLHttpRequest();
 
-    xhr.open('GET', "@ViewBag.reportUrl", true);
-    xhr.withCredentials = "true";
+    document.getElementById('reportContainer').style.display = "none"; // hide the iframe
+    document.getElementById('spinner').style.display = "block"; // show spinner
+
+    xhr.open('GET', "@Html.Raw(ViewBag.reportUrl)", true);
     xhr.onreadystatechange = handler;
     xhr.responseType = 'blob';
+    xhr.withCredentials = "true";
     xhr.setRequestHeader('Access-Control-Allow-Origin', '*'); // allow CORS
-    xhr.setRequestHeader('Authorization', 'Basic @ViewBag.accessToken'); // inject the basic auth in the request header
+    xhr.setRequestHeader('Authorization', 'Basic @Html.Raw(ViewBag.accessToken)'); // inject the basic auth in the request header
     xhr.send();
 
     function handler() {
@@ -33,15 +56,17 @@
                 // this.response is a Blob, because we set responseType above
                 var data_url = URL.createObjectURL(this.response);
                 document.querySelector('#reportContainer').src = data_url;
-                document.querySelector('#reportContainer').style.display = "block"; // make sure the iframe is visible
+                document.getElementById('reportContainer').style.display = "block"; // make sure the iframe is visible
+                document.getElementById('spinner').style.display = "none";
             } else {
                 // log the error in the browser developer console
                 console.error('Response error ' + this.status);
-                console.log(this.statusText);
+                console.error(this.statusText);
 
                 // display the error in the page
                 document.querySelector('#errorContainer').innerHTML = "<h2>Server Response Error!</h2><p>" + this.statusText + "</p>";
                 document.querySelector('#reportContainer').style.display = "none"; // hide the iframe
+                document.getElementById('spinner').style.display = "none";
             }
         }
     }

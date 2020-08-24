@@ -15,7 +15,14 @@
 
 <h3>
     @Html.ActionLink("Access Report via HttpClient", "HttpClientMode", "Report")
+    |
+    @Html.ActionLink("with a Parameter", "HttpClientMode", "Report", new { id = "I came from the URL" }, null)
 </h3>
 <h3>
     @Html.ActionLink("Access Report via JavaScript", "JavaScriptMode", "Report")
+    |
+    @Html.ActionLink("with a Parameter", "JavaScriptMode", "Report", new { id = "I came from the URL" }, null)
+</h3>
+<h3>
+    <a href="/Simple/javascript_sample.html">Access Report via JavaScript SPA (Single-Page-App)</a>
 </h3>
